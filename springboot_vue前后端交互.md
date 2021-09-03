@@ -1,0 +1,1079 @@
+
+
+## 一.注解
+
+**@Data** 该注解修饰的class相当于写了set，get方法，配合lombok使用
+
+**@Entity**修饰实体类，name属性可以指定数据库的表名（Jpa管理映射）
+
+**@Id**指定主键，和@Entity注解配合，每个Entity中必须有一个
+
+**@Table（name=“employee”）**指定表名
+
+**@Repository（持久层）、@Service（业务层）、@Controller（控制层） 和 @Component（普通Bean）** 将类标识为Bean
+
+**@Configuration**用于定义配置类，可替换xml配置文件，被注解的类内部包含有一个或多个被@Bean注解的方法，这些方法将会被AnnotationConfigApplicationContext或AnnotationConfigWebApplicationContext类进行扫描，并用于构建bean定义，初始化Spring容器。
+
+**@Controller：**在对应的方法上，视图解析器可以解析return 的jsp,html页面，并且跳转到相应页面，若返回json等内容到页面，则需要加@ResponseBody注解
+
+**@RestController** = @Controller+@ResponseBody
+
+**@AutoWired：**一般用在Service前面，Dao前面，Config前面，它可以对类成员变量、方法及构造函数进行标注，让 spring 完成 bean 自动装配的工作
+
+**@RequestMapping** 来映射请求，也就是通过它来指定控制器可以处理哪些URL请求，相当于Servlet中在web.xml中配置
+
+**@Bean**是一个方法级别上的注解，主要用在@Configuration注解的类里，也可以用在@Component注解的类里。添加的bean的id为方法名，如：
+
+```java
+@Configuration
+public class AppConfig {
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl();
+    }
+}
+```
+
+相当于
+
+```xml
+<beans>
+    <bean id="transferService" class="com.acme.TransferServiceImpl"/>
+</beans>
+```
+
+**@ControllerAdvice** 对加了@Controller注解的方法进行拦截处理
+
+**@ExceptionHandler(Exception.class)** 进行异常处理，处理Exception.class的异常
+
+**@Transactional**: 代码出现异常则会发生事务回滚
+
+**@EnableAsync**：开启多线程，配合@Configuration和@Bean（“线程池名”）创建一个线程池
+
+**@Async（“线程池”）**：执行多线程任务
+
+```java
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+```
+
+修饰注解，自定义注解，用来完成AOP工作
+
+## 二.Vue
+
+1.router文件夹index.js添加新组件
+
+```javascript
+  const routes =[
+      {
+        path: '/employee',
+        component: Employee
+      }
+  ]
+```
+
+2.views文件夹添加新的vue文件
+
+```java
+<template>
+  <div>
+  </div>
+</template>
+    
+<script>
+export default {
+ //用来传递信息
+  data(){
+    return {
+      employees:[]
+    }
+  },
+ //页面刚打开的时候执行的操作
+  created() {
+    const _this = this
+    axios.get('http://localhost:8182/employee/findAll').then(function (resp){
+      _this.employees = resp.data
+    })
+  }
+}
+</script>
+//用来描述页面的style，类似css代码
+<style scoped>
+</style>
+```
+
+3.前后端交互通信方式axios，使用手段：
+
+```javascript
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<button>get请求</button>
+	<button>put请求</button>
+	<button>delete请求</button>
+	<button>put请求</button>
+	<button>执行并发请求</button>
+</body>
+<script type="text/javascript" src="../js/jquery.js"></script>
+<script type="text/javascript" src="../js/axios.min.js"></script>
+<script type="text/javascript">
+	$(function() {
+		//get
+		$('button').eq(0).click(function() {
+				axios.get('http://localhost:8080/axios',{
+					params:{
+						id : 123
+					}
+				})
+				.then(function(res){ 
+					console.log(res);
+//{data: "This is get request---123", status: 200, statusText: "", headers: {…}, config: {…}, …}
+				})
+				.catch(function(res){
+					console.log(res);
+				});
+		});
+		//post
+		$('button').eq(1).click(function() {
+			
+			axios.post('http://localhost:8080/axios',{
+					name : "奥巴马"
+			})
+			.then(function(res){
+				console.log(res);
+//{data: "This is post request---{"name":"奥巴马"}", status: 200, statusText: "", headers: {…}, config: {…}, …}
+			})
+			.catch(function(res){
+				console.log(res);
+			});
+
+		});
+		//delete
+		$('button').eq(2).click(function() {
+			
+			axios.delete("http://localhost:8080/axios",{
+				params:{
+					id : 456
+				}				
+			})
+			.then(function(res){
+				console.log(res);
+//{data: "This is post request---奥巴马", status: 200, statusText: "", headers: {…}, config: {…}, …}
+			})
+			.catch(function(res){
+				console.log(res);
+			});
+
+		});
+		//put
+		$('button').eq(3).click(function() {
+			data = {
+					name : "奥巴马",
+					age : 100,
+					sex : "男"
+				};
+			axios.put("http://localhost:8080/axios",data)
+			.then(function(res){
+				console.log(res);
+/*
+{data: "This is put request{name=奥巴马, age=100, sex=火星}", status: 200, statusText: "", headers: {…}, config: {…}, …}
+*/
+			})
+			.catch(function(res){
+				console.log(res);
+			});
+		});
+		
+		//并发请求 
+		$('button').eq(4).click(function() {
+			axios.all([method1(),method2()])
+			.then(axios.spread(function(acct,perms){
+				console.log(acct);
+				console.log(perms);
+/* 
+{data: "This is get request---123", status: 200, statusText: "", headers: {…}, config: {…}, …}
+{data: "This is post request---奥巴马", status: 200, statusText: "", headers: {…}, config: {…}, …} 
+*/
+			}))
+		});
+		
+		function method1(){
+			return axios.get('http://localhost:8080/axios',{
+				params:{
+					id : 123
+				}
+			})
+		}
+		
+		function method2(){
+			return axios.post('http://localhost:8080/axios',{
+					name : "奥巴马"
+			})
+		}
+        /* 
+		axios.request(config)
+		axios.get(url[, config])
+		axios.delete(url[, config])
+		axios.head(url[, config])
+		axios.post(url[, data[, config]])
+		axios.put(url[, data[, config]])
+		axios.patch(url[, data[, config]]) 
+		*/
+	});
+</script>
+</html>
+```
+
+## 三.SpringBoot
+
+对应后端：
+
+```java
+@RestController
+@RequestMapping("axios")
+public class AxiosController {
+    @GetMapping("")
+    public String get(@RequestParam String id) {
+	System.out.println(id);
+	return "This is get request---"+id;
+    }
+
+    @PostMapping("")
+    public String post(@RequestBody Map<String, Object> map) {
+		System.out.println(map.get("name"));
+	return "This is post request---"+map.get("name").toString();
+    }
+
+    @DeleteMapping("")
+    public String delete(@RequestParam Integer id) {
+		System.out.println(id);
+	return "This is delete request---"+id;
+    }
+
+    @PutMapping("")
+    //public String put(@RequestBody Map<String, Object> map) {//使用map接受参数
+    public String put(@RequestBody User user) {//使用实体类接受参数
+	System.out.println(user.toString());
+	return "This is put request"+user.toString();
+    }
+}
+```
+
+4.前后端交互跨域问题，springBoot解决方式：
+
+```java
+@Configuration
+public class CorsConfig {
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("*")
+                        .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
+                        .allowCredentials(false)
+                        .allowedOrigins("*");
+            }
+        };
+    }
+}
+```
+
+5.jpa的使用
+
+1.依赖
+
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+```
+
+2.继承接口
+
+```java
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer> {}
+```
+
+3.使用
+
+<img src="C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20210831144801406.png" alt="image-20210831144801406" style="zoom: 67%;" />
+
+```java
+@RestController
+@RequestMapping("/employee")
+public class EmployeeHandler {
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @GetMapping("/findAll")
+    public List<Employee> findAll(){
+        return employeeRepository.findAll();
+    }
+}
+```
+
+注意：如果采用jpa，一定要要让SpringBoot的启动类在根目录之上
+
+6.application.yml
+
+一般记录数据库和服务器相关的信息
+
+```yml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/db?useUnicode=true&useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 1717
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+server:
+  port: 8182
+```
+
+## 四.博客项目
+
+亮点：
+
+1. 项目以单体架构入手，先快速开发，不考虑项目优化，降低开发负担
+2. 开发完成后，开始优化项目，提升编程思维能力
+3. 比如页面静态化，缓存，云存储，日志等
+4. docker部署上线
+5. 云服务器购买，域名购买，域名备案等（待定）
+
+项目使用技术 ：
+
+springboot + mybatisplus+redis+mysql
+
+### 项目的文件结构
+
+<img src="C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20210831175316881.png" alt="image-20210831175316881" style="zoom:67%;" />
+
+项目目录包：
+
+**1.config包**
+
+​	设置MybatisPlus配置，跨域WebMVC配置（解决前后端互访问题，设置拦截器），线程池ThreadPool配置
+
+**2.controller包**
+
+​	控制网页跳转，调用service，返回相应的RequestBody
+
+**3.dao包**
+
+​	mapper
+
+​		实体类对应的mapper接口，service可以通过mapper接口调用DAO方法
+
+​	pojo
+
+​		实体类，对应数据库的表的字段，可以转化为VO
+
+**4.handler包**
+
+​	拦截Exception并处理
+
+​	拦截Login请求并处理
+
+**5.service包**
+
+​	业务处理，调用mapper接口方法获取DAO对象，如查询最热文章，查询最新文章，评论文章
+
+**6.utils包**
+
+​	包含一些工具类
+
+​	BeanUtils.copyProperties(Object source, Object target)，将源对象的属性拷贝到目标对象的属性
+
+​	jwt技术工具包
+
+​	云服务器工具包
+
+**7.vo包**
+
+​	为了不让数据库对象Dao耦合，单纯抽象出用来表示显示层的vo对象，如查出的数据库记录对象采取其中几条字段进行显示
+
+
+
+项目中的对象：
+
+PO：persistent object 持久对象
+
+```
+1 ．有时也被称为Data对象，对应数据库中的entity，可以简单认为一个PO对应数据库中的一条记录。
+2 ．在hibernate持久化框架中与insert/delete操作密切相关。
+3 ．PO中不应该包含任何对数据库的操作。
+```
+
+BO：business object 业务对象
+
+```
+业务对象主要作用是把业务逻辑封装为一个对象。这个对象可以包括一个或多个其它的对象。比如一个简历，有教育经历、工作经历、社会关系等等。我们可以把教育经历对应一个PO，工作经历对应一个PO，社会关系对应一个PO。建立一个对应简历的BO对象处理简历，每个BO包含这些PO。封装业务逻辑为一个对象（可以包括多个PO，通常需要将BO转化成PO，才能进行数据的持久化，反之，从DB中得到的PO，需要转化成BO才能在业务层使用）。
+```
+
+VO：view object 表现层对象
+
+```
+1 ．主要对应页面显示（web页面/swt、swing界面）的数据对象。
+2 ．可以和表对应，也可以不，这根据业务的需要。
+```
+
+DTO（TO）：Data Transfer Object 数据传输对象
+
+```
+1 ．用在需要跨进程或远程传输时，它不应该包含业务逻辑。
+
+2 ．比如一张表有100个字段，那么对应的PO就有100个属性（大多数情况下，DTO内的数据来自多个表）。但view层只需显示10个字段，没有必要把整个PO对象传递到client，这时我们就可以用只有这10个属性的DTO来传输数据到client，这样也不会暴露server端表结构。到达客户端以后，如果用这个对象来对应界面显示，那此时它的身份就转为VO
+```
+
+DAO：data access object数据访问对象
+
+```
+1 ．主要用来封装对DB的访问（CRUD操作）。
+
+2 ．通过接收Business层的数据，把POJO持久化为PO。
+```
+
+POJO ：plain ordinary java object 无规则简单java对象
+
+```
+一个中间对象，可以转化为PO、DTO、VO。
+1 ．POJO持久化之后==〉PO
+（在运行期，由Hibernate中的cglib动态把POJO转换为PO，PO相对于POJO会增加一些用来管理数据库entity状态的属性和方法。PO对于programmer来说完全透明，由于是运行期生成PO，所以可以支持增量编译，增量调试。）
+2 ．POJO传输过程中==〉DTO
+3 ．POJO用作表示层==〉VO
+PO 和VO都应该属于它。
+```
+
+![这里写图片描述](https://img-blog.csdn.net/20180717104224284?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTE4NzA1NDc=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+### MyBatisPlus
+
+1. 简介：
+
+同类插件：JPA，tk-mapper
+
+无侵入，可自动生成代码（Mapper，Controller，Service，Model），内置分页插件，支持主键自动生成（雪花算法）
+
+**配合Wrapper进行增删改查**
+
+2. 使用步骤：
+
+**第一步：编写POJO文件**
+
+```java
+package com.mszlu.blog.dao.pojo;
+import lombok.Data;
+@Data
+public class Article {
+    public static final int Article_TOP = 1;
+    public static final int Article_Common = 0;
+    private Long id;
+    private String title;
+    private String summary;
+    private Integer commentCounts;
+    private Long createDate;
+}
+
+```
+
+**第二步：配置Mapper接口**（无需像之前配置xml文件绑定），继承BaseMapper泛型类即可
+
+```java
+public interface ArticleMapper extends BaseMapper<Article> {
+}
+```
+
+**第三步：使用**（测试类中举例）
+
+```java
+@SpringBootTest
+public class BlogApp {
+
+    @AutoWired
+    private ArticleMapper articleMapper;
+    
+    @Test
+    void main() {
+        articleMapper.selectList(null);
+    }
+
+}
+```
+
+额外功能：配置分页内置插件
+
+```java
+public class MybatisPlusConfig {
+
+    //分页插件
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        return interceptor;
+    }
+}
+```
+
+Wrapper：条件查询器
+
+```java
+//查询name为 "Jone" 的用户
+ @Test
+ void selectBy02(){
+     QueryWrapper<User> wrapper=new QueryWrapper<>();
+     wrapper.eq("name","Jone"); //name为 "Jone" 的用户
+     //查询一个数据，为多个用 selectList 或者 selectByMap
+     Use user = userMapper.selectOne(wrapper);
+     System.out.println(user);
+ }
+//模糊查询
+ @Test
+ void selectLike01(){
+     QueryWrapper<User> wrapper=new QueryWrapper<>();
+     wrapper
+             .notLike("name","To") //名字不包含 To
+             .like("name","o") //名字包含 o 的
+             //左和右 左：%e   右：e%  两边：%e%
+             //右查询
+             .likeRight("email","test");
+     List<Map<String, Object>> users = userMapper.selectMaps(wrapper);
+     users.forEach(System.out::println);
+ }
+```
+
+统一异常处理：
+
+目的：在未预料的异常给用户一个友好的提醒和处理，并且记录出错记录
+
+### JWT
+
+登录使用JWT技术。
+
+jwt 可以生成 一个加密的token，做为用户登录的令牌，当用户登录成功之后，发放给客户端。
+
+请求需要登录的资源或者接口的时候，将token携带，后端验证token是否合法。
+
+jwt 有三部分组成：A.B.C
+
+A：Header，{"type":"JWT","alg":"HS256"} 固定，**字符串，不安全**
+
+B：payload，存放信息，比如，用户id，过期时间等等，**可以被解密，不能存放敏感信息**
+
+C:  签证，A和B加上**秘钥** 加密而成，只要秘钥不丢失，可以认为是安全的。
+
+**jwt 验证，主要就是验证C部分 是否合法。**
+
+依赖包:
+
+~~~xml
+  <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt</artifactId>
+        <version>0.9.1</version>
+    </dependency>
+~~~
+
+
+
+工具类:
+
+~~~java
+package com.mszlu.blog.utils;
+
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+public class JWTUtils {
+
+    //秘钥：用来封装和解析token
+    private static final String jwtToken = "123456Mszlu!@#$$";
+
+    //通过userId封装一个token对象
+    public static String createToken(Long userId){
+        //B部分
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("userId",userId);
+        //B部分 
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .signWith(SignatureAlgorithm.HS256, jwtToken) // A部分：签发算法，秘钥为jwtToken
+                .setClaims(claims) // body数据，要唯一，自行设置
+                .setIssuedAt(new Date()) // 设置签发时间
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 60 * 1000));// 一天的有效时间
+        String token = jwtBuilder.compact();
+        return token;
+    }
+
+    public static Map<String, Object> checkToken(String token){
+        try {
+            Jwt parse = Jwts.parser().setSigningKey(jwtToken).parse(token);
+            return (Map<String, Object>) parse.getBody();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+~~~
+
+登陆服务：login业务逻辑
+
+```java
+/**
+ * 1. 检查参数是否合法
+ * 2. 根据用户名和密码去user表中查询 是否存在
+ * 3. 如果不存在 登录失败
+ * 4. 如果存在 ，使用jwt 生成token 返回给前端
+ * 5. token放入redis当中，redis  token：user信息 设置过期时间
+ *  (登录认证的时候 先认证token字符串是否合法，去redis认证是否存在)
+ */
+```
+
+数据库：
+
+password在数据库中需要加**加密盐**
+
+雪花算法：分布式id的生成
+
+
+
+### 统一登录拦截：
+
+**设置拦截器的原因：**
+
+每次访问需要登录的资源的时候，都需要在代码中进行判断，比如有接口要访问需要登录，必须先判断是否登录，如果大量接口需要判断，一旦登录的逻辑有所改变，比如jwt和redis，代码都得进行大量变动，非常不合适。
+
+那么可不可以统一进行登录判断呢？可以，使用拦截器，进行登录拦截，如果遇到需要登录才能访问的接口，如果未登录，拦截器直接返回，并跳转登录页面。
+
+**拦截器实现:**
+
+继承HandlerInterceptor接口
+
+```java
+public class LoginInterceptor implements HandlerInterceptor {
+    @Autowired
+    private LoginService loginService;
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        //在执行controller方法(Handler)之前进行执行
+        /**
+         * 1. 需要判断 请求的接口路径 是否为 HandlerMethod (controller方法)
+         * 2. 判断 token是否为空，如果为空 未登录
+         * 3. 如果token 不为空，登录验证 loginService checkToken
+         * 4. 如果认证成功 放行即可
+         */
+        if (!(handler instanceof HandlerMethod)){
+            //handler 可能是 RequestResourceHandler springboot 程序 访问静态资源 默认去classpath下的static目录去查询
+            return true;
+        }
+
+        if (StringUtils.isBlank(token)){
+            Result result = Result.fail(ErrorCode.NO_LOGIN.getCode(), "未登录");
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().print(JSON.toJSONString(result));
+            return false;
+        }
+        SysUser sysUser = loginService.checkToken(token);
+        if (sysUser == null){
+            Result result = Result.fail(ErrorCode.NO_LOGIN.getCode(), "未登录");
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().print(JSON.toJSONString(result));
+            return false;
+        }
+        //登录验证成功，放行
+        //我希望在controller中 直接获取用户的信息 怎么获取?
+        UserThreadLocal.put(sysUser);
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        //如果不删除 ThreadLocal中用完的信息 会有内存泄漏的风险
+        UserThreadLocal.remove();
+    }
+}
+```
+
+并在config包中的WebMVCConfig进行配置，告诉spring我们需要拦截
+
+```java
+public class WebMVCConfig implements WebMvcConfigurer {
+    @Autowired
+    private LoginInterceptor loginInterceptor;
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        //拦截test接口，后续实际遇到需要拦截的接口时，在配置为真正的拦截接口
+        registry.addInterceptor(loginInterceptor)
+                .addPathPatterns("/test")
+                .addPathPatterns("/comments/create/change")
+                .addPathPatterns("/articles/publish");
+    }
+}
+```
+
+### 线程池
+
+使用线程池更新阅读数和评论数
+
+```java
+//查看完文章之后，本应该直接返回数据了，这时候做了一个更新操作，更新时加写锁，阻塞其他的读操作，性能就会比较低
+//更新 增加了此次接口的耗时 如果一旦更新出问题，不能影响 查看文章的操作
+//线程池 可以把更新操作扔到线程池中去执行，和主线程就不相关了
+```
+
+配置线程池的参数
+
+```java
+@Configuration
+@EnableAsync //开启多线程
+public class ThreadPoolConfig {
+    @Bean("taskExecutor")
+    public Executor asyncServiceExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        // 设置核心线程数
+        executor.setCorePoolSize(5);
+        // 设置最大线程数
+        executor.setMaxPoolSize(20);
+        //配置队列大小
+        executor.setQueueCapacity(Integer.MAX_VALUE);
+        // 设置线程活跃时间（秒）
+        executor.setKeepAliveSeconds(60);
+        // 设置默认线程名称
+        executor.setThreadNamePrefix("码神之路博客项目");
+        // 等待所有任务结束后再关闭线程池
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        //执行初始化
+        executor.initialize();
+        return executor;
+    }
+}
+```
+
+配置多线程
+
+```java
+@Component
+public class ThreadService {
+    //期望此操作在线程池 执行 不会影响原有的主线程
+    @Async("taskExecutor")
+    public void updateArticleViewCount(ArticleMapper articleMapper, Article article) {
+        int viewCounts = article.getViewCounts();
+        Article articleUpdate = new Article();
+        articleUpdate.setViewCounts(viewCounts +1);
+        LambdaUpdateWrapper<Article> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Article::getId,article.getId());
+        //设置一个 为了在多线程的环境下 线程安全
+        updateWrapper.eq(Article::getViewCounts,viewCounts);
+        // update article set view_count=100 where view_count=99 and id=11
+        articleMapper.update(articleUpdate,updateWrapper);
+    }
+}
+```
+
+### AOP
+
+利用AOP特性实现统一日志和缓存
+
+统一日志：
+
+利用自定义注解LogAnnotation，和对应@Aspect（定义一个切面，定义切点和通知的关系）修饰类，@Pointcut("@annotation(类名)")修饰方法，以及@Around进行业务增强
+
+```java
+package com.mszlu.blog.common.aop;
+
+import java.lang.annotation.*;
+//Type 代表可以放在类上面 Method 代表可以放在方法上
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface LogAnnotation {
+
+    String module() default "";
+
+    String operator() default "";
+}
+```
+
+```java
+@Aspect //切面 定义了通知和切点的关系
+@Slf4j
+public class LogAspect {
+
+    @Pointcut("@annotation(com.mszlu.blog.common.aop.LogAnnotation)")
+    public void pt(){}
+
+    //环绕通知
+    @Around("pt()")
+    public Object log(ProceedingJoinPoint joinPoint) throws Throwable {
+        long beginTime = System.currentTimeMillis();
+        //执行方法
+        Object result = joinPoint.proceed();
+        //执行时长(毫秒)
+        long time = System.currentTimeMillis() - beginTime;
+        //保存日志
+        recordLog(joinPoint, time);
+        return result;
+    }
+}
+```
+
+统一缓存：
+
+内存的访问速度 远远大于 磁盘的访问速度 （1000倍起）
+
+```java
+package com.mszlu.blog.common.cache;
+import java.lang.annotation.*;
+
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Cache {
+    long expire() default 1 * 60 * 1000;
+    String name() default "";
+}
+
+```
+
+使用：在获取对应的请求头时，先去redis缓存去寻找，如果击中则直接返回
+
+```java
+package com.mszlu.blog.common.cache;
+
+import com.alibaba.fastjson.JSON;
+import com.mszlu.blog.vo.Result;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Method;
+import java.time.Duration;
+
+@Aspect
+@Component
+@Slf4j
+public class CacheAspect {
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Pointcut("@annotation(com.mszlu.blog.common.cache.Cache)")
+    public void pt(){}
+
+    @Around("pt()")
+    public Object around(ProceedingJoinPoint pjp){
+        try {
+            Signature signature = pjp.getSignature();
+            //类名
+            String className = pjp.getTarget().getClass().getSimpleName();
+            //调用的方法名
+            String methodName = signature.getName();
+            Class[] parameterTypes = new Class[pjp.getArgs().length];
+            Object[] args = pjp.getArgs();
+            //参数
+            String params = "";
+            for(int i=0; i<args.length; i++) {
+                if(args[i] != null) {
+                    params += JSON.toJSONString(args[i]);
+                    parameterTypes[i] = args[i].getClass();
+                }else {
+                    parameterTypes[i] = null;
+                }
+            }
+            if (StringUtils.isNotEmpty(params)) {
+                //加密 以防出现key过长以及字符转义获取不到的情况
+                params = DigestUtils.md5Hex(params);
+            }
+            Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
+            //获取Cache注解
+            Cache annotation = method.getAnnotation(Cache.class);
+            //缓存过期时间
+            long expire = annotation.expire();
+            //缓存名称
+            String name = annotation.name();
+            //先从redis获取
+            String redisKey = name + "::" + className+"::"+methodName+"::"+params;
+            String redisValue = redisTemplate.opsForValue().get(redisKey);
+            if (StringUtils.isNotEmpty(redisValue)){
+                log.info("走了缓存~~~,{},{}",className,methodName);
+                return JSON.parseObject(redisValue, Result.class);
+            }
+            
+            Object proceed = pjp.proceed();//得到
+            
+            redisTemplate.opsForValue().set(redisKey,JSON.toJSONString(proceed), Duration.ofMillis(expire));
+            log.info("存入缓存~~~ {},{}",className,methodName);
+            return proceed;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return Result.fail(-999,"系统错误");
+    }
+}
+```
+
+
+
+### ThreadLocal
+
+评论和发布中需要登陆权限的，在评论和发布服务前就获取用户的所有信息，因此在登录拦截器中设置ThreadLoacal，使得评论和发布的时候可以直接获取当前用户的信息。
+
+```shell
+解决多线程下，用户获取个人信息的线程隔离，在controller中 直接获取用户的信息；
+每一个Thread维护一个ThreadLocalMap, key为使用弱引用的ThreadLocal实例，value为线程变量的副本。
+强引用，使用最普遍的引用，一个对象具有强引用，不会被垃圾回收器回收。当内存空间不足，Java虚拟机宁愿抛出OutOfMemoryError错误，使程序异常终止，也不回收这种对象。如果想取消强引用和某个对象之间的关联，可以显式地将引用赋值为null，这样可以使JVM在合适的时间就会回收该对象。
+
+弱引用，JVM进行垃圾回收时，无论内存是否充足，都会回收被弱引用关联的对象。在java中，用java.lang.ref.WeakReference类来表示。
+```
+
+ThreadLocal工具类：泛型设置为个人用户信息的Sysuser的对象
+
+```java
+package com.mszlu.blog.utils;
+
+import com.mszlu.blog.dao.pojo.SysUser;
+
+public class UserThreadLocal {
+
+    private UserThreadLocal(){}
+
+    private static final ThreadLocal<SysUser> LOCAL = new ThreadLocal<>();
+
+    public static void put(SysUser sysUser){
+        LOCAL.set(sysUser);
+    }
+    public static SysUser get(){
+        return LOCAL.get();
+    }
+    public static void remove(){
+        LOCAL.remove();
+    }
+}
+```
+
+拦截器中设置ThreadLocal的put操作
+
+```java
+package com.mszlu.blog.handler;
+
+import com.alibaba.fastjson.JSON;
+import com.mszlu.blog.dao.pojo.SysUser;
+import com.mszlu.blog.service.LoginService;
+import com.mszlu.blog.utils.UserThreadLocal;
+import com.mszlu.blog.vo.ErrorCode;
+import com.mszlu.blog.vo.Result;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@Component
+@Slf4j
+public class LoginInterceptor implements HandlerInterceptor {
+    @Autowired
+    private LoginService loginService;
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        if (!(handler instanceof HandlerMethod)){
+            //handler 可能是 RequestResourceHandler springboot 程序 访问静态资源 默认去classpath下的static目录去查询
+            return true;
+        }
+        String token = request.getHeader("Authorization");
+
+        if (StringUtils.isBlank(token)){
+            Result result = Result.fail(ErrorCode.NO_LOGIN.getCode(), "未登录");
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().print(JSON.toJSONString(result));
+            return false;
+        }
+        SysUser sysUser = loginService.checkToken(token);
+        if (sysUser == null){
+            Result result = Result.fail(ErrorCode.NO_LOGIN.getCode(), "未登录");
+            response.setContentType("application/json;charset=utf-8");
+            response.getWriter().print(JSON.toJSONString(result));
+            return false;
+        }
+        //登录验证成功，放行
+        //在controller中 直接获取用户的信息
+        UserThreadLocal.put(sysUser);
+        return true;
+    }
+
+    //remove防止内存泄露
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        UserThreadLocal.remove();
+    }
+}
+
+```
+
+测试类测试
+
+```java
+package com.mszlu.blog.controller;
+
+import com.mszlu.blog.dao.pojo.SysUser;
+import com.mszlu.blog.utils.UserThreadLocal;
+import com.mszlu.blog.vo.Result;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("test")
+public class TestController {
+
+    @RequestMapping
+    public Result test(){
+//        SysUser
+        SysUser sysUser = UserThreadLocal.get();
+        System.out.println(sysUser);
+        return Result.success(null);
+    }
+}
+```
+
+# 五. 思考别的优化
+
+1. 文章可以放入es当中，便于后续中文分词搜索。springboot教程有和es的整合
+2. 评论数据，可以考虑放入mongodb当中
+3. 阅读数和评论数 ，考虑把阅读数和评论数 增加的时候 放入redis incr自增，使用定时任务 定时把数据固话到数据库当中
+4. 为了加快访问速度，部署的时候，可以把图片，js，css等放入七牛云存储中，加快网站访问速度
+
+
+
