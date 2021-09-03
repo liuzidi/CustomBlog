@@ -11,7 +11,7 @@ JDK：<img src="https://img.shields.io/badge/JDK-1.8+-orange">
 
 数据库：<img src="https://img.shields.io/badge/Mysql-5.7-red">
 
-权限认证授权：<img src="https://img.shields.io/badge/license-JWT 0.9.1-blue">	
+权限认证授权：<img src="https://img.shields.io/badge/JWT- 0.9.1-blue">	
 
 缓存：<img src="https://img.shields.io/badge/Redis-3.2.1-blue">	
 
